@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleanup Storage - PHOTOLOGY</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0B0B0B, #1a1a1a);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #D4AF37, #FF8C42);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        p {
+            color: #bbb;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .status-value {
+            color: #D4AF37;
+            font-weight: 600;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #D4AF37, #FF8C42);
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 140, 66, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 140, 66, 0.5);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .log {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 2rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            display: none;
+        }
+        
+        .log.show {
+            display: block;
+        }
+        
+        .log-item {
+            padding: 0.3rem 0;
+            color: #0f0;
+        }
+        
+        .log-item.error {
+            color: #f00;
+        }
+        
+        .log-item.warning {
+            color: #ff0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Storage Cleanup</h1>
+        <p>This tool will remove deleted videos from localStorage and keep only the 5 existing files (3 videos + 2 images).</p>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">Current Items:</span>
+                <span class="status-value" id="currentCount">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">After Cleanup:</span>
+                <span class="status-value">5 items</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span class="status-value" id="status">Ready</span>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="cleanupStorage()">
+            🧹 Clean & Update Storage
+        </button>
+        
+        <button class="btn btn-secondary" onclick="viewCurrent()">
+            👁️ View Current Storage
+        </button>
+        
+        <button class="btn btn-secondary" onclick="goToWebsite()">
+            🏠 Go to Website
+        </button>
+        
+        <div class="log" id="log"></div>
+    </div>
+    
+    <script>
+        // Correct file list (only existing files)
+        const correctVideos = [
+            'vijay 1.1.mp4',
+            '3.mp4',
+            'lagan geet highlight 1.mp4'
+        ];
+        
+        const correctImages = [
+            { name: '_sufi night ( birthdat ).jpg', type: 'image/jpeg' },
+            { name: '_hanumant events officia poster.png', type: 'image/png' }
+        ];
+        
+        // Deleted videos to remove
+        const deletedVideos = [
+            'ayush 1.mp4',
+            'chintan jumkha.mp4',
+            'deepak 1.mp4',
+            'jara so 0.mp4',
+            'vanadan.mp4',
+            'HELLO SURAT 1.1.mp4',
+            'himaksh.mp4'
+        ];
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.classList.add('show');
+            const item = document.createElement('div');
+            item.className = `log-item ${type}`;
+            item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(item);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateCount() {
+            const media = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            document.getElementById('currentCount').textContent = `${media.length} items`;
+        }
+        
+        function cleanupStorage() {
+            log('🧹 Starting cleanup...', 'info');
+            document.getElementById('status').textContent = 'Cleaning...';
+            
+            // Get current media
+            const currentMedia = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            log(`📊 Found ${currentMedia.length} items in storage`, 'info');
+            
+            // Create new clean list
+            const cleanMedia = [];
+            
+            // Add correct videos
+            correctVideos.forEach(videoName => {
+                const videoPath = `assets/videos/${videoName}`;
+                
+                // Check if already exists
+                const exists = currentMedia.find(item => item.url === videoPath);
+                
+                if (exists) {
+                    log(`✅ Keeping: ${videoName}`, 'info');
+                    cleanMedia.push(exists);
+                } else {
+                    log(`➕ Adding: ${videoName}`, 'info');
+                    cleanMedia.push({
+                        name: videoName,
+                        url: videoPath,
+                        type: 'video/mp4',
+                        size: 0,
+                        timestamp: Date.now(),
+                        isLocal: true,
+                        isProjectFile: true
+                    });
+                }
+            });
+            
+            // Add correct images
+            correctImages.forEach(image => {
+                const imagePath = `assets/images/${image.name}`;
+                
+                // Check if already exists
+                const exists = currentMedia.find(item => item.url === imagePath);
+                
+                if (exists) {
+                    log(`✅ Keeping: ${image.name}`, 'info');
+                    cleanMedia.push(exists);
+                } else {
+                    log(`➕ Adding: ${image.name}`, 'info');
+                    cleanMedia.push({
+                        name: image.name,
+                        url: imagePath,
+                        type: image.type,
+                        size: 0,
+                        timestamp: Date.now(),
+                        isLocal: true,
+                        isProjectFile: true
+                    });
+                }
+            });
+            
+            // Log removed items
+            currentMedia.forEach(item => {
+                const isCorrect = cleanMedia.find(clean => clean.url === item.url);
+                if (!isCorrect) {
+                    log(`🗑️ Removing: ${item.name}`, 'warning');
+                }
+            });
+            
+            // Save clean list
+            localStorage.setItem('uploaded_media', JSON.stringify(cleanMedia));
+            
+            log(`✅ Cleanup complete! Now ${cleanMedia.length} items`, 'info');
+            document.getElementById('status').textContent = 'Complete!';
+            updateCount();
+            
+            setTimeout(() => {
+                alert('✅ Storage cleaned successfully!\n\n' +
+                      `Removed: ${currentMedia.length - cleanMedia.length} items\n` +
+                      `Current: ${cleanMedia.length} items (3 videos + 2 images)\n\n` +
+                      'Refresh the website to see changes.');
+            }, 500);
+        }
+        
+        function viewCurrent() {
+            const media = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            log('📋 Current storage contents:', 'info');
+            
+            if (media.length === 0) {
+                log('⚠️ Storage is empty', 'warning');
+            } else {
+                media.forEach((item, index) => {
+                    log(`${index + 1}. ${item.name} (${item.type})`, 'info');
+                });
+            }
+        }
+        
+        function goToWebsite() {
+            window.location.href = 'index.html';
+        }
+        
+        // Update count on load
+        updateCount();
+        
+        // Auto-log current status
+        setTimeout(() => {
+            viewCurrent();
+        }, 500);
+    </script>
+</body>
+</html>

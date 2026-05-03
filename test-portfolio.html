@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0B0B0B;
+            color: #fff;
+            padding: 2rem;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .test-item {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        video, img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        button {
+            background: linear-gradient(135deg, #D4AF37, #FF8C42);
+            color: #000;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>📹 Portfolio Test Page</h1>
+    <p>Testing if vijay video loads properly</p>
+    
+    <button onclick="window.location.href='index.html'">Go to Main Website</button>
+    <button onclick="testVideo()">Test Video Load</button>
+    
+    <div class="test-grid">
+        <div class="test-item">
+            <h3>Vijay Video</h3>
+            <video src="assets/videos/vijay 1.1.mp4" controls muted></video>
+            <p>Path: assets/videos/vijay 1.1.mp4</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>Portfolio Image 1</h3>
+            <img src="assets/images/portfolio-1.jpg" alt="Portfolio 1">
+            <p>Path: assets/images/portfolio-1.jpg</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>Portfolio Image 2</h3>
+            <img src="assets/images/portfolio-2.jpg" alt="Portfolio 2">
+            <p>Path: assets/images/portfolio-2.jpg</p>
+        </div>
+    </div>
+    
+    <div id="result" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;"></div>
+    
+    <script>
+        function testVideo() {
+            const video = document.querySelector('video');
+            const result = document.getElementById('result');
+            
+            result.innerHTML = `
+                <h3>Video Test Results:</h3>
+                <p><strong>Video Source:</strong> ${video.src}</p>
+                <p><strong>Video Ready State:</strong> ${video.readyState}</p>
+                <p><strong>Video Duration:</strong> ${video.duration || 'Loading...'}</p>
+                <p><strong>Video Error:</strong> ${video.error ? video.error.message : 'None'}</p>
+            `;
+            
+            video.addEventListener('loadedmetadata', () => {
+                result.innerHTML += `<p style="color: #4bff4b;">✅ Video loaded successfully! Duration: ${video.duration}s</p>`;
+            });
+            
+            video.addEventListener('error', (e) => {
+                result.innerHTML += `<p style="color: #ff4b4b;">❌ Video failed to load: ${e.message}</p>`;
+            });
+        }
+        
+        // Auto-test on load
+        window.onload = () => {
+            setTimeout(testVideo, 1000);
+        };
+    </script>
+</body>
+</html>

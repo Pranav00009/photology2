@@ -1,0 +1,33 @@
+========================================
+QUICK FIX - FIREBASE DATABASE RULES
+========================================
+
+STEP 1: Go to this link:
+https://console.firebase.google.com/project/agency-abe45/database/agency-abe45-default-rtdb/rules
+
+STEP 2: Replace ALL text with this (copy everything below):
+
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "contacts": {
+      "$contactId": {
+        ".write": true,
+        ".read": false
+      }
+    }
+  }
+}
+
+STEP 3: Click "Publish" button
+
+STEP 4: Refresh your website and try again
+
+========================================
+
+This will allow anyone to write to contacts, but only you can read via Firebase Console.
+
+After this, your contact form will work!
+
+========================================

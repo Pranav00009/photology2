@@ -1,0 +1,52 @@
+═══════════════════════════════════════════════════════════
+  🧹 PHOTOLOGY - STORAGE CLEANUP GUIDE
+═══════════════════════════════════════════════════════════
+
+📌 QUICK STEPS:
+
+1. Open: http://localhost:8000/cleanup-storage.html
+2. Click: "Clean & Update Storage" button
+3. Done! ✅
+
+═══════════════════════════════════════════════════════════
+
+🎯 WHAT IT DOES:
+
+✅ Removes 5 deleted videos from storage
+✅ Keeps 5 existing videos
+✅ Keeps 2 existing images
+✅ Total: 7 working items
+
+═══════════════════════════════════════════════════════════
+
+📋 FILES REMOVED:
+❌ ayush 1.mp4
+❌ chintan jumkha.mp4
+❌ deepak 1.mp4
+❌ jara so 0.mp4
+❌ vanadan.mp4
+
+📋 FILES KEPT:
+✅ vijay 1.1.mp4
+✅ 3.mp4
+✅ HELLO SURAT 1.1.mp4
+✅ himaksh.mp4
+✅ lagan geet highlight 1.mp4
+✅ _sufi night ( birthdat ).jpg
+✅ _hanumant events officia poster.png
+
+═══════════════════════════════════════════════════════════
+
+🔄 ALTERNATIVE METHOD (Browser Console):
+
+1. Press F12
+2. Type: localStorage.clear()
+3. Press Enter
+4. Refresh page (Ctrl + R)
+
+═══════════════════════════════════════════════════════════
+
+✅ RESULT:
+Portfolio will show 7 items - all working perfectly!
+
+═══════════════════════════════════════════════════════════

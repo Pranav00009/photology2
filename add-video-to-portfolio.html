@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Video to Portfolio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0B0B0B;
+            color: #fff;
+            padding: 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 12px;
+        }
+        button {
+            background: linear-gradient(135deg, #D4AF37, #FF8C42);
+            color: #000;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 1rem;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .success {
+            color: #4bff4b;
+            margin-top: 1rem;
+        }
+        .info {
+            color: #D4AF37;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Video to Portfolio</h1>
+        <p class="info">Video: vijay 1.1.mp4</p>
+        <p class="info">Location: assets/videos/vijay 1.1.mp4</p>
+        
+        <button onclick="addVideoToPortfolio()">Add to Portfolio</button>
+        <button onclick="window.location.href='index.html'">View Website</button>
+        <button onclick="window.location.href='admin/media-upload.html'">Go to Media Upload</button>
+        
+        <div id="message"></div>
+    </div>
+    
+    <script>
+        function addVideoToPortfolio() {
+            // Get existing media
+            let uploadedMedia = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            
+            // Add video
+            const videoData = {
+                name: 'vijay 1.1.mp4',
+                url: 'assets/videos/vijay 1.1.mp4',
+                type: 'video/mp4',
+                size: 0, // Unknown size
+                timestamp: Date.now(),
+                isLocal: true
+            };
+            
+            // Check if already exists
+            const exists = uploadedMedia.some(item => item.url === videoData.url);
+            
+            if (exists) {
+                document.getElementById('message').innerHTML = '<p style="color: orange;">⚠️ Video already exists in portfolio!</p>';
+            } else {
+                uploadedMedia.push(videoData);
+                localStorage.setItem('uploaded_media', JSON.stringify(uploadedMedia));
+                document.getElementById('message').innerHTML = '<p class="success">✅ Video added to portfolio successfully!</p><p>Refresh the main website to see it.</p>';
+            }
+        }
+        
+        // Show current portfolio count
+        window.onload = function() {
+            const uploadedMedia = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            document.getElementById('message').innerHTML = `<p class="info">Current portfolio items: ${uploadedMedia.length}</p>`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Debug</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0B0B0B;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 12px;
+        }
+        button {
+            background: linear-gradient(135deg, #D4AF37, #FF8C42);
+            color: #000;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #4bff4b;
+        }
+        .success { color: #4bff4b; }
+        .error { color: #ff4b4b; }
+        .warning { color: #FFD700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Portfolio Debug Panel</h1>
+        
+        <div style="margin: 2rem 0;">
+            <button onclick="checkStorage()">Check Storage</button>
+            <button onclick="addVijayVideo()">Add Vijay Video</button>
+            <button onclick="clearStorage()">Clear All</button>
+            <button onclick="window.location.href='index.html'">View Website</button>
+        </div>
+        
+        <div id="output"></div>
+    </div>
+    
+    <script>
+        function checkStorage() {
+            const output = document.getElementById('output');
+            const uploadedMedia = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            
+            output.innerHTML = `
+                <h3 class="success">✅ Storage Check</h3>
+                <p><strong>Total Items:</strong> ${uploadedMedia.length}</p>
+                <pre>${JSON.stringify(uploadedMedia, null, 2)}</pre>
+            `;
+        }
+        
+        function addVijayVideo() {
+            let uploadedMedia = JSON.parse(localStorage.getItem('uploaded_media')) || [];
+            
+            const vijayVideo = {
+                name: 'vijay 1.1.mp4',
+                url: 'assets/videos/vijay 1.1.mp4',
+                type: 'video/mp4',
+                size: 0,
+                timestamp: Date.now(),
+                isLocal: true,
+                isProjectFile: true
+            };
+            
+            // Check if exists
+            const exists = uploadedMedia.some(item => item.url === vijayVideo.url);
+            
+            if (exists) {
+                document.getElementById('output').innerHTML = `
+                    <h3 class="warning">⚠️ Already Exists</h3>
+                    <p>Vijay video is already in portfolio</p>
+                `;
+            } else {
+                uploadedMedia.push(vijayVideo);
+                localStorage.setItem('uploaded_media', JSON.stringify(uploadedMedia));
+                
+                document.getElementById('output').innerHTML = `
+                    <h3 class="success">✅ Added Successfully</h3>
+                    <p>Vijay video added to portfolio</p>
+                    <p><strong>Total Items:</strong> ${uploadedMedia.length}</p>
+                `;
+            }
+            
+            setTimeout(checkStorage, 1000);
+        }
+        
+        function clearStorage() {
+            if (confirm('Clear all portfolio items?')) {
+                localStorage.removeItem('uploaded_media');
+                document.getElementById('output').innerHTML = `
+                    <h3 class="success">✅ Cleared</h3>
+                    <p>All portfolio items removed</p>
+                `;
+            }
+        }
+        
+        // Auto-check on load
+        window.onload = checkStorage;
+    </script>
+</body>
+</html>

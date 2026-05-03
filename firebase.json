@@ -1,0 +1,68 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/*.md",
+      "**/*.txt",
+      "cleanup-storage.html",
+      "CLEANUP-INSTRUCTIONS.md",
+      "CURRENT-MEDIA-FILES.md",
+      "FINAL-STATUS.md",
+      "FIREBASE-DEPLOYMENT-GUIDE.md",
+      "LOADING-FIX.md",
+      "MEDIA-PREVIEW-STATUS.md",
+      "PREMIUM-GLASS-UPGRADE.md",
+      "PREMIUM-HERO-REDESIGN.md",
+      "PROFESSIONAL-ANIMATIONS-GUIDE.md",
+      "PROJECT-SUMMARY.md",
+      "QUICK-SETUP.txt",
+      "VIDEO-CONTROLS-GUIDE.md",
+      "WHATS-NEW.md",
+      "HOW-TO-CLEAN.txt"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(mp4|webm)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      }
+    ]
+  },
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

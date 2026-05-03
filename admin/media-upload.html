@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Upload - PHOTOLOGY Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- LocalForage and SortableJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        .sortable-ghost {
+            opacity: 0.4;
+            transform: scale(0.95);
+        }
+        .media-item {
+            cursor: grab;
+        }
+        .media-item:active {
+            cursor: grabbing;
+        }
+        
+        select option {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .upload-zone {
+            border: 2px dashed rgba(212, 175, 55, 0.5);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        
+        .upload-zone.dragover {
+            border-color: var(--orange);
+            background: rgba(255, 140, 66, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+        
+        .upload-text {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-hint {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .media-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .media-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: rgba(0, 0, 0, 0.3);
+            display: block;
+        }
+        
+        .media-preview-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .video-play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+            pointer-events: auto;
+        }
+        
+        .video-play-overlay:hover {
+            background: var(--gold);
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+        }
+        
+        .video-play-overlay i {
+            color: #000;
+            font-size: 1.5rem;
+            margin-left: 4px;
+        }
+        
+        .video-play-overlay.playing i {
+            margin-left: 0;
+        }
+        
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 1rem 0.8rem 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 3;
+        }
+        
+        .media-preview-container:hover .video-controls {
+            opacity: 1;
+        }
+        
+        .video-controls.show {
+            opacity: 1;
+        }
+        
+        .video-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .video-progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+            position: relative;
+        }
+        
+        .video-progress-fill::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+        }
+        
+        .video-controls-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .video-control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.3rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-control-btn:hover {
+            color: var(--gold);
+            transform: scale(1.1);
+        }
+        
+        .video-time {
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .video-volume-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+        
+        .video-volume-slider {
+            width: 60px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .video-volume-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 2px;
+            width: 100%;
+            transition: width 0.1s linear;
+        }
+        
+        .status-text {
+            color: #D4AF37;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .status-text.complete {
+            color: #00ff88;
+        }
+        
+        .status-text.error {
+            color: #ff4b4b;
+        }
+        
+        .media-info {
+            padding: 1rem;
+        }
+        
+        .media-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .media-url {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            word-break: break-all;
+            margin-bottom: 0.5rem;
+        }
+        
+        .media-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .copy-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            color: var(--gold);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(212, 175, 55, 0.25);
+        }
+        
+        .delete-media-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 75, 75, 0.15);
+            border: 1px solid rgba(255, 75, 75, 0.3);
+            border-radius: 8px;
+            color: #ff4b4b;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-media-btn:hover {
+            background: rgba(255, 75, 75, 0.25);
+        }
+        
+        .video-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-logo">PHOTOLOGY</h1>
+                <p class="sidebar-subtitle">Admin Panel</p>
+            </div>
+            
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="messages.html" class="nav-link">
+                            <i class="fas fa-envelope"></i>
+                            <span>Messages</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="media-upload.html" class="nav-link active">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Media Upload</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="pricing.html" class="nav-link">
+                            <i class="fas fa-tag"></i>
+                            <span>Pricing</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <button class="logout-button" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">Media Upload</h1>
+                <p class="page-subtitle">Upload images and videos - stored locally in browser</p>
+            </div>
+            
+            <!-- Upload Zone -->
+            <div class="content-section">
+                <div class="glass-card" style="padding: 2rem;">
+                    <div class="upload-zone" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <p class="upload-text">Drag & Drop files here</p>
+                        <p class="upload-hint">or click to browse</p>
+                        <p class="upload-hint" style="margin-top: 1rem;">
+                            <i class="fas fa-info-circle"></i> 
+                            Supports: JPG, PNG, MP4, MOV (Max 50MB per file)
+                        </p>
+                        <p class="upload-hint" style="margin-top: 0.5rem; color: var(--gold);">
+                            <i class="fas fa-database"></i> 
+                            Files stored locally in browser storage
+                        </p>
+                        <input type="file" id="fileInput" class="file-input" accept="image/*,video/*" multiple>
+                    </div>
+                    
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    
+                    <div id="uploadStatus" style="margin-top: 1rem; text-align: center; color: var(--gold); font-weight: 600;"></div>
+                </div>
+            </div>
+            
+            <!-- Add Local File Section -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Add Local Project Files</h2>
+                </div>
+                
+                <div class="glass-card" style="padding: 2rem;">
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        <i class="fas fa-folder"></i> Add images/videos from your project folder (assets/images or assets/videos)
+                    </p>
+                    <p style="color: var(--orange); margin-bottom: 1.5rem; font-size: 0.85rem; background: rgba(255,140,66,0.1); padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,140,66,0.2);">
+                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> Project files will only preview correctly when viewing from the main website (index.html), not in the admin panel. For admin preview, use the file upload feature above.
+                    </p>
+                    
+                    <div style="display: grid; gap: 1rem;">
+                        <div class="form-group">
+                            <label style="color: var(--text-primary); font-weight: 600; display: block; margin-bottom: 0.5rem;">
+                                File Path (relative to project root)
+                            </label>
+                            <input type="text" id="localFilePath" 
+                                   placeholder="assets/videos/vijay 1.1.mp4" 
+                                   style="width: 100%; padding: 0.9rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-family: 'Courier New', monospace;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="color: var(--text-primary); font-weight: 600; display: block; margin-bottom: 0.5rem;">
+                                File Type
+                            </label>
+                            <select id="localFileType" 
+                                    style="width: 100%; padding: 0.9rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff;">
+                                <option value="image/jpeg">Image (JPG/JPEG)</option>
+                                <option value="image/png">Image (PNG)</option>
+                                <option value="video/mp4">Video (MP4)</option>
+                                <option value="video/quicktime">Video (MOV)</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="addLocalFile()" 
+                                style="padding: 1rem 2rem; background: linear-gradient(135deg, #D4AF37, #FF8C42); border: none; border-radius: 12px; color: #000; font-weight: 700; cursor: pointer;">
+                            <i class="fas fa-plus"></i> Add to Portfolio
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Uploaded Media -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Portfolio Media</h2>
+                    <button class="add-button" onclick="refreshMedia()">
+                        <i class="fas fa-sync"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+                
+                <div class="media-grid" id="mediaGrid">
+                    <div class="glass-card" style="padding: 3rem; text-align: center; grid-column: 1 / -1;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold);"></i>
+                        <p style="margin-top: 1rem; color: var(--text-secondary);">Loading media...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Success Toast -->
+    <div class="error-toast" id="successToast" style="background: rgba(75, 255, 75, 0.15); border-color: rgba(75, 255, 75, 0.3);">
+        <i class="fas fa-check-circle" style="color: #4bff4b;"></i>
+        <span id="successMessage" style="color: #4bff4b;">File uploaded successfully!</span>
+    </div>
+    
+    <script>
+        // Firebase has been removed to use LocalForage instead
+        
+        // Check authentication
+        const isLoggedIn = localStorage.getItem('photology_admin_logged_in');
+        if (isLoggedIn !== 'true') {
+            window.location.href = 'login.html';
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('photology_admin_logged_in');
+            localStorage.removeItem('photology_admin_email');
+            window.location.href = 'login.html';
+        });
+        
+        // Upload Zone Elements
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const mediaGrid = document.getElementById('mediaGrid');
+        
+        // Click to upload
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // File selected
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        });
+        
+        // Drag & Drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length > 0) {
+                handleFiles(files);
+            }
+        });
+        
+        // MAIN UPLOAD FUNCTION - Simplified & Optimized
+        function handleFiles(files) {
+            if (!files.length) return;
+            
+            progressBar.style.display = 'block';
+            uploadStatus.textContent = `📤 Uploading ${files.length} file(s)...`;
+            uploadStatus.className = 'status-text';
+            
+            let completed = 0;
+            let successful = 0;
+            
+            Array.from(files).forEach(file => {
+                // Check file size (max 50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    alert(`${file.name} is too large (max 50MB). Please use smaller files.`);
+                    completed++;
+                    updateProgress();
+                    return;
+                }
+                
+                // Check file type
+                if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                    alert(`${file.name} is not a valid image or video file.`);
+                    completed++;
+                    updateProgress();
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    const fileData = {
+                        name: file.name,
+                        url: e.target.result, // Base64 data URL
+                        type: file.type,
+                        size: file.size,
+                        timestamp: Date.now(),
+                        isLocal: true,
+                        isProjectFile: false
+                    };
+                    try {
+                        // Save to localforage (IndexedDB supports up to 1GB+)
+                        let mediaList = await localforage.getItem('uploaded_media') || [];
+                        mediaList.unshift(fileData);
+                        await localforage.setItem('uploaded_media', mediaList);
+                        
+                        completed++;
+                        successful++;
+                        updateProgress();
+                        
+                        console.log('✅ File uploaded successfully to IndexedDB:', file.name);
+                    } catch (error) {
+                        console.error('❌ Storage Error:', error);
+                        alert(`Error saving "${file.name}". Your browser might be completely out of space.`);
+                        
+                        uploadStatus.textContent = `❌ Error: Save failed`;
+                        uploadStatus.className = 'status-text error';
+                        completed++;
+                        updateProgress();
+                    }
+                };
+                
+                reader.onerror = function() {
+                    console.error('❌ Error uploading:', file.name);
+                    uploadStatus.textContent = `❌ Error uploading ${file.name}`;
+                    uploadStatus.className = 'status-text error';
+                    completed++;
+                    updateProgress();
+                };
+                
+                // Read file as Data URL (Base64)
+                reader.readAsDataURL(file);
+            });
+            
+            function updateProgress() {
+                const progress = (completed / files.length) * 100;
+                progressFill.style.width = progress + '%';
+                
+                if (completed < files.length) {
+                    uploadStatus.textContent = `⏳ Processing ${completed}/${files.length} files...`;
+                    uploadStatus.className = 'status-text';
+                } else {
+                    uploadStatus.textContent = `✅ Completed ${successful}/${files.length} files`;
+                    uploadStatus.className = 'status-text complete';
+                }
+                
+                if (completed === files.length) {
+                    setTimeout(() => {
+                        progressBar.style.display = 'none';
+                        progressFill.style.width = '0%';
+                        uploadStatus.textContent = '';
+                        uploadStatus.className = '';
+                        fileInput.value = '';
+                        
+                        if (successful > 0) {
+                            showSuccess(`✅ ${successful} file(s) uploaded successfully!`);
+                            refreshMedia();
+                        }
+                    }, 1500);
+                }
+            }
+        }
+        
+        // Add Local File to Portfolio
+        async function addLocalFile() {
+            const filePath = document.getElementById('localFilePath').value.trim();
+            const fileType = document.getElementById('localFileType').value;
+            
+            if (!filePath) {
+                alert('Please enter a file path!');
+                return;
+            }
+            
+            // Extract filename from path
+            const fileName = filePath.split('/').pop();
+            
+            // Create media object
+            const mediaData = {
+                name: fileName,
+                url: filePath,
+                type: fileType,
+                size: 0,
+                timestamp: Date.now(),
+                isLocal: true,
+                isProjectFile: true
+            };
+            
+            // Check if already exists
+            let mediaList = await localforage.getItem('uploaded_media') || [];
+            const exists = mediaList.some(item => item.url === filePath);
+            
+            if (exists) {
+                alert('⚠️ This file is already in portfolio!');
+                return;
+            }
+            
+            // Add to portfolio (top)
+            mediaList.unshift(mediaData);
+            await localforage.setItem('uploaded_media', mediaList);
+            
+            // Clear input
+            document.getElementById('localFilePath').value = '';
+            
+            // Show success and refresh
+            showSuccess('✅ File added to portfolio!');
+            refreshMedia();
+        }
+        
+        // Load and Display Media
+        async function refreshMedia() {
+            const mediaList = await localforage.getItem('uploaded_media') || [];
+            
+            if (mediaList.length === 0) {
+                mediaGrid.innerHTML = `
+                    <div class="glass-card" style="padding: 3rem; text-align: center; grid-column: 1 / -1;">
+                        <i class="fas fa-images" style="font-size: 3rem; color: var(--gold); opacity: 0.5;"></i>
+                        <p style="margin-top: 1rem; color: var(--text-secondary);">No media uploaded yet</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Upload images or videos to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Clear grid
+            mediaGrid.innerHTML = '';
+            
+            // Do not reverse, match exact array order for drag-and-drop
+            mediaList.forEach((media, index) => {
+                const isVideo = media.type.startsWith('video/');
+                const fileSize = media.size ? (media.size / 1024 / 1024).toFixed(2) : 'N/A';
+                const isProjectFile = media.isProjectFile || false;
+                const actualIndex = index;
+                
+                // Fix URL path - if it's a project file, make it relative to root
+                let mediaUrl = media.url;
+                if (isProjectFile && !mediaUrl.startsWith('data:') && !mediaUrl.startsWith('blob:')) {
+                    // Remove leading slash if present and ensure it starts with ../
+                    mediaUrl = mediaUrl.replace(/^\/+/, '');
+                    if (!mediaUrl.startsWith('../')) {
+                        mediaUrl = '../' + mediaUrl;
+                    }
+                }
+                
+                // Create card element
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'media-item glass-card';
+                cardDiv.style.transition = 'all 0.3s ease';
+                
+                // Create preview container
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'media-preview-container';
+                
+                // Create media element
+                if (isVideo) {
+                    const videoId = `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                    
+                    const video = document.createElement('video');
+                    video.className = 'media-preview';
+                    video.id = videoId;
+                    video.src = mediaUrl;
+                    video.preload = 'metadata';
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.style.cssText = 'width: 100%; height: 100%; object-fit: cover; background: #000;';
+                    
+                    // Load first frame
+                    video.addEventListener('loadedmetadata', function() {
+                        this.currentTime = 0.1;
+                        console.log('✅ Video loaded:', media.name);
+                    });
+                    
+                    video.addEventListener('loadeddata', function() {
+                        console.log('✅ Video data loaded:', media.name);
+                    });
+                    
+                    video.addEventListener('error', function(e) {
+                        console.error('❌ Video error:', media.name, mediaUrl, e);
+                        // Show error placeholder
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #222; color: #999;';
+                        errorDiv.innerHTML = `
+                            <i class="fas fa-video-slash" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <p style="font-size: 0.8rem;">Video Error</p>
+                            <p style="font-size: 0.7rem; opacity: 0.7;">${media.name}</p>
+                        `;
+                        this.parentElement.insertBefore(errorDiv, this);
+                        this.style.display = 'none';
+                    });
+                    
+                    // Create play overlay
+                    const playOverlay = document.createElement('div');
+                    playOverlay.className = 'video-play-overlay';
+                    playOverlay.innerHTML = '<i class="fas fa-play"></i>';
+                    playOverlay.onclick = function() {
+                        toggleVideoPlayback(videoId);
+                    };
+                    
+                    // Create video controls
+                    const controls = document.createElement('div');
+                    controls.className = 'video-controls';
+                    controls.innerHTML = `
+                        <div class="video-progress-bar" onclick="seekVideo('${videoId}', event)">
+                            <div class="video-progress-fill" id="${videoId}-progress"></div>
+                        </div>
+                        <div class="video-controls-row">
+                            <button class="video-control-btn" onclick="toggleVideoPlayback('${videoId}')">
+                                <i class="fas fa-play" id="${videoId}-play-icon"></i>
+                            </button>
+                            <span class="video-time">
+                                <span id="${videoId}-current">0:00</span> / <span id="${videoId}-duration">0:00</span>
+                            </span>
+                            <div class="video-volume-container">
+                                <button class="video-control-btn" onclick="toggleMute('${videoId}')">
+                                    <i class="fas fa-volume-up" id="${videoId}-volume-icon"></i>
+                                </button>
+                                <div class="video-volume-slider" onclick="changeVolume('${videoId}', event)">
+                                    <div class="video-volume-fill" id="${videoId}-volume-fill"></div>
+                                </div>
+                            </div>
+                            <button class="video-control-btn" onclick="toggleFullscreen('${videoId}')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Update progress bar
+                    video.addEventListener('timeupdate', function() {
+                        const progress = (this.currentTime / this.duration) * 100;
+                        const progressBar = document.getElementById(`${videoId}-progress`);
+                        const currentTime = document.getElementById(`${videoId}-current`);
+                        if (progressBar) progressBar.style.width = progress + '%';
+                        if (currentTime) currentTime.textContent = formatTime(this.currentTime);
+                    });
+                    
+                    // Update duration
+                    video.addEventListener('loadedmetadata', function() {
+                        const duration = document.getElementById(`${videoId}-duration`);
+                        if (duration) duration.textContent = formatTime(this.duration);
+                    });
+                    
+                    // Handle video end
+                    video.addEventListener('ended', function() {
+                        const playIcon = document.getElementById(`${videoId}-play-icon`);
+                        if (playIcon) {
+                            playIcon.className = 'fas fa-play';
+                        }
+                        playOverlay.style.display = 'flex';
+                        playOverlay.innerHTML = '<i class="fas fa-redo"></i>';
+                    });
+                    
+                    previewContainer.appendChild(video);
+                    previewContainer.appendChild(playOverlay);
+                    previewContainer.appendChild(controls);
+                } else {
+                    const img = document.createElement('img');
+                    img.className = 'media-preview';
+                    img.src = mediaUrl;
+                    img.alt = media.name;
+                    img.loading = 'lazy';
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    
+                    img.addEventListener('load', function() {
+                        console.log('✅ Image loaded:', media.name);
+                    });
+                    
+                    img.addEventListener('error', function() {
+                        console.error('❌ Image error:', media.name, mediaUrl);
+                        // Show error placeholder
+                        const errorDiv = document.createElement('div');
+                        errorDiv.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #222; color: #999;';
+                        errorDiv.innerHTML = `
+                            <i class="fas fa-image" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                            <p style="font-size: 0.8rem;">Image Error</p>
+                            <p style="font-size: 0.7rem; opacity: 0.7;">${media.name}</p>
+                        `;
+                        this.parentElement.insertBefore(errorDiv, this);
+                        this.style.display = 'none';
+                    });
+                    
+                    previewContainer.appendChild(img);
+                }
+                
+                // Create badge
+                const badge = document.createElement('div');
+                badge.style.cssText = 'position: absolute; top: 8px; left: 8px; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+                if (isProjectFile) {
+                    badge.style.background = 'rgba(212,175,55,0.95)';
+                    badge.style.color = '#000';
+                    badge.innerHTML = '<i class="fas fa-folder"></i> Project File';
+                } else {
+                    badge.style.background = 'rgba(75,255,75,0.95)';
+                    badge.style.color = '#000';
+                    badge.innerHTML = '<i class="fas fa-check-circle"></i> Uploaded';
+                }
+                previewContainer.appendChild(badge);
+                
+                // Create info section
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'media-info';
+                infoDiv.innerHTML = `
+                    <div class="media-name" title="${media.name}">
+                        ${isVideo ? '<i class="fas fa-video" style="color: var(--orange);"></i>' : '<i class="fas fa-image" style="color: var(--gold);"></i>'} 
+                        ${media.name}
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 0.5rem;">
+                        ${fileSize !== 'N/A' ? `<i class="fas fa-hdd"></i> ${fileSize} MB` : '<i class="fas fa-link"></i> Project File'}
+                        <span style="margin-left: 0.5rem; color: var(--gold);">
+                            <i class="fas fa-clock"></i> ${new Date(media.timestamp).toLocaleDateString()}
+                        </span>
+                    </div>
+                    ${isProjectFile ? `
+                        <div style="color: var(--gold); font-size: 0.7rem; margin-bottom: 0.8rem; font-family: 'Courier New', monospace; background: rgba(212,175,55,0.1); padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid rgba(212,175,55,0.2);">
+                            <i class="fas fa-link"></i> ${media.url}
+                        </div>
+                    ` : ''}
+                    <div class="media-actions">
+                        <button class="copy-btn" onclick="copyURL('${media.url.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-copy"></i> Copy URL
+                        </button>
+                        <button class="delete-media-btn" onclick="deleteMedia(${actualIndex})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Assemble card
+                cardDiv.appendChild(previewContainer);
+                cardDiv.appendChild(infoDiv);
+                
+                // Add to grid
+                mediaGrid.appendChild(cardDiv);
+            });
+            
+            console.log('✅ Media grid refreshed:', mediaList.length, 'items');
+            initSortable();
+        }
+        
+        // Initialize SortableJS for drag and drop reordering
+        let sortableInstance = null;
+        
+        function initSortable() {
+            if (sortableInstance) {
+                sortableInstance.destroy();
+            }
+            sortableInstance = new Sortable(mediaGrid, {
+                animation: 250,
+                ghostClass: 'sortable-ghost',
+                delay: 150, // Slight delay for mobile scroll vs drag
+                delayOnTouchOnly: true,
+                onEnd: async function (evt) {
+                    const oldIndex = evt.oldIndex;
+                    const newIndex = evt.newIndex;
+                    
+                    if (oldIndex === newIndex) return;
+                    
+                    let mediaList = await localforage.getItem('uploaded_media') || [];
+                    
+                    // Move item in array
+                    const movedItem = mediaList.splice(oldIndex, 1)[0];
+                    mediaList.splice(newIndex, 0, movedItem);
+                    
+                    await localforage.setItem('uploaded_media', mediaList);
+                    showSuccess('✅ Media reordered successfully!');
+                }
+            });
+        }
+        
+        // Professional Video Control Functions
+        function toggleVideoPlayback(videoId) {
+            const video = document.getElementById(videoId);
+            const playIcon = document.getElementById(`${videoId}-play-icon`);
+            const playOverlay = video.parentElement.querySelector('.video-play-overlay');
+            
+            if (video.paused) {
+                video.play();
+                video.muted = false;
+                if (playIcon) playIcon.className = 'fas fa-pause';
+                if (playOverlay) playOverlay.style.display = 'none';
+            } else {
+                video.pause();
+                if (playIcon) playIcon.className = 'fas fa-play';
+                if (playOverlay) playOverlay.style.display = 'flex';
+            }
+        }
+        
+        function seekVideo(videoId, event) {
+            const video = document.getElementById(videoId);
+            const progressBar = event.currentTarget;
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (event.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        }
+        
+        function toggleMute(videoId) {
+            const video = document.getElementById(videoId);
+            const volumeIcon = document.getElementById(`${videoId}-volume-icon`);
+            const volumeFill = document.getElementById(`${videoId}-volume-fill`);
+            
+            video.muted = !video.muted;
+            
+            if (video.muted) {
+                volumeIcon.className = 'fas fa-volume-mute';
+                volumeFill.style.width = '0%';
+            } else {
+                volumeIcon.className = 'fas fa-volume-up';
+                volumeFill.style.width = (video.volume * 100) + '%';
+            }
+        }
+        
+        function changeVolume(videoId, event) {
+            const video = document.getElementById(videoId);
+            const volumeSlider = event.currentTarget;
+            const volumeFill = document.getElementById(`${videoId}-volume-fill`);
+            const volumeIcon = document.getElementById(`${videoId}-volume-icon`);
+            const rect = volumeSlider.getBoundingClientRect();
+            const pos = (event.clientX - rect.left) / rect.width;
+            
+            video.volume = Math.max(0, Math.min(1, pos));
+            video.muted = false;
+            volumeFill.style.width = (video.volume * 100) + '%';
+            
+            if (video.volume === 0) {
+                volumeIcon.className = 'fas fa-volume-mute';
+            } else if (video.volume < 0.5) {
+                volumeIcon.className = 'fas fa-volume-down';
+            } else {
+                volumeIcon.className = 'fas fa-volume-up';
+            }
+        }
+        
+        function toggleFullscreen(videoId) {
+            const video = document.getElementById(videoId);
+            const container = video.parentElement;
+            
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+        
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Copy URL
+        function copyURL(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showSuccess('URL copied to clipboard!');
+            });
+        }
+        
+        // Delete Media
+        async function deleteMedia(index) {
+            if (!confirm('Are you sure you want to delete this media?')) return;
+            
+            let mediaList = await localforage.getItem('uploaded_media') || [];
+            mediaList.splice(index, 1);
+            await localforage.setItem('uploaded_media', mediaList);
+            refreshMedia();
+            showSuccess('Media deleted successfully!');
+        }
+        
+        // Show Success Toast
+        function showSuccess(message) {
+            const toast = document.getElementById('successToast');
+            document.getElementById('successMessage').textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Load media on page load
+        refreshMedia();
+        
+        // Auto-add all project videos and images if not already added
+        window.addEventListener('DOMContentLoaded', async function() {
+            // First time migration from localStorage if it exists
+            const oldStorage = localStorage.getItem('uploaded_media');
+            if (oldStorage && !(await localforage.getItem('uploaded_media'))) {
+                await localforage.setItem('uploaded_media', JSON.parse(oldStorage));
+                console.log('✅ Migrated old media to IndexedDB');
+            }
+            
+            const mediaList = await localforage.getItem('uploaded_media') || [];
+            
+            // List of all videos in assets/videos folder
+            const projectVideos = [
+                'vijay 1.1.mp4',
+                '3.mp4',
+                'lagan geet highlight 1.mp4'
+            ];
+            
+            // List of all images in assets/images folder
+            const projectImages = [
+                { name: '_sufi night ( birthdat ).jpg', type: 'image/jpeg' },
+                { name: '_hanumant events officia poster.png', type: 'image/png' }
+            ];
+            
+            let addedCount = 0;
+            
+            // Add videos
+            projectVideos.forEach(videoName => {
+                const videoPath = `assets/videos/${videoName}`;
+                
+                // Check if video already exists
+                const exists = mediaList.some(item => item.url === videoPath);
+                
+                if (!exists) {
+                    console.log('Adding video to portfolio:', videoName);
+                    mediaList.push({
+                        name: videoName,
+                        url: videoPath,
+                        type: 'video/mp4',
+                        size: 0,
+                        timestamp: Date.now(),
+                        isLocal: true,
+                        isProjectFile: true
+                    });
+                    addedCount++;
+                }
+            });
+            
+            // Add images
+            projectImages.forEach(image => {
+                const imagePath = `assets/images/${image.name}`;
+                
+                // Check if image already exists
+                const exists = mediaList.some(item => item.url === imagePath);
+                
+                if (!exists) {
+                    console.log('Adding image to portfolio:', image.name);
+                    mediaList.push({
+                        name: image.name,
+                        url: imagePath,
+                        type: image.type,
+                        size: 0,
+                        timestamp: Date.now(),
+                        isLocal: true,
+                        isProjectFile: true
+                    });
+                    addedCount++;
+                }
+            });
+            
+            if (addedCount > 0) {
+                await localforage.setItem('uploaded_media', mediaList);
+                console.log(`✅ Added ${addedCount} items to portfolio`);
+                refreshMedia();
+            } else {
+                console.log('ℹ️ All project media already in portfolio');
+            }
+        });
+    </script>
+</body>
+</html>

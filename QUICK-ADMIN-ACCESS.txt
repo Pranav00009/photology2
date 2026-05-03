@@ -1,0 +1,68 @@
+========================================
+PHOTLOGY ADMIN PANEL - QUICK ACCESS
+========================================
+
+🔐 LOGIN
+--------
+URL: photology/admin/login.html
+Email: pranav81412@gmail.com
+Password: Any password (demo mode)
+
+📱 CONTACT INFO (Updated Everywhere)
+--------
+Email: pranavgiri81412@gmail.com
+Phone: +91 99249 45660
+WhatsApp: 919924945660
+Location: Surat, Gujarat
+Instagram: @photology_.009
+
+🔥 FIREBASE - IMPORTANT!
+--------
+⚠️ MUST APPLY RULES FIRST!
+
+Go to: https://console.firebase.google.com/project/agency-abe45/database/agency-abe45-default-rtdb/rules
+
+Paste this:
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+
+Click "Publish" → Refresh admin panel
+
+✅ ADMIN PAGES
+--------
+1. Dashboard - Overview + stats
+2. Messages - Contact submissions (with phone)
+3. Portfolio - Instagram URLs
+4. Pricing - Edit plans
+5. Settings - Full control (6 tabs)
+
+🎨 SETTINGS TABS
+--------
+1. General - Quick actions + system status
+2. Contact Info - Email, phone, WhatsApp, location
+3. Stats - Projects, views, clients, experience
+4. Content - Hero title, subtitle, about text
+5. Social Links - Instagram handle & URL
+6. Advanced - Export data, Firebase console, danger zone
+
+🚀 QUICK ACTIONS
+--------
+- View Website: ../index.html
+- Firebase Console: https://console.firebase.google.com/project/agency-abe45
+- Export Data: Settings → Advanced → Export All Data
+
+⚠️ REMEMBER
+--------
+1. Apply Firebase rules FIRST
+2. Phone number field added to contact form
+3. All settings save to localStorage
+4. Demo mode - any password works
+5. Settings page has 6 professional tabs
+
+========================================
+STATUS: ✅ FULLY OPERATIONAL
+========================================

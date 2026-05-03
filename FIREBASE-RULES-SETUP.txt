@@ -1,0 +1,61 @@
+========================================
+FIREBASE DATABASE RULES - MUST APPLY
+========================================
+
+PROBLEM: Admin panel shows "Error loading messages"
+REASON: Firebase Realtime Database rules not allowing read access
+
+========================================
+SOLUTION: Apply These Rules
+========================================
+
+STEP 1: Go to Firebase Console
+https://console.firebase.google.com/project/agency-abe45/database/agency-abe45-default-rtdb/rules
+
+STEP 2: Replace ALL text with this:
+
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+
+STEP 3: Click "Publish" button
+
+========================================
+IMPORTANT NOTES:
+========================================
+
+1. These rules allow ANYONE to read/write (for development)
+2. For production, use more secure rules
+3. After applying rules, refresh admin panel
+4. Messages will load automatically
+
+========================================
+PRODUCTION RULES (Use Later):
+========================================
+
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "contacts": {
+      "$contactId": {
+        ".write": true,
+        ".read": true
+      }
+    }
+  }
+}
+
+========================================
+VERIFICATION:
+========================================
+
+After applying rules:
+1. Refresh admin dashboard
+2. Messages should load
+3. No more "Error loading messages"
+
+========================================
